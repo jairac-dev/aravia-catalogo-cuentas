@@ -93,11 +93,17 @@ src/catalog/
 
 ## Qué dejé afuera
 
+Opcionales del enunciado que no implementé:
+
+- **Importación masiva.** Recibiría una lista de cuentas y respondería cuáles entraron y cuáles fallaron, con su motivo. Las procesaría en orden de código, para que cada padre se cree antes que sus hijas aunque vengan desordenadas. Permitiría un catálogo parcial y reportaría cada fallo, porque una fila mala no debería frenar cientos de filas buenas. Si el negocio exige consistencia total, sería todo o nada dentro de una transacción.
+- **Listado plano con filtros** por nivel, naturaleza y texto en el código o el nombre, con paginación.
+- **Inactivar en lugar de borrar.** No se podría inactivar una cuenta que tenga hijas activas.
+- **Camino de una cuenta hasta su clase.**
+
+Pendientes técnicos:
+
 - Persistencia real (PostgreSQL u otra). Hoy los datos se pierden al reiniciar.
 - Pruebas e2e de los endpoints. Los endpoints se probaron a mano y la lógica está cubierta por las pruebas unitarias de los casos de uso.
-- `GET /accounts/:code` y búsqueda o paginación del catálogo.
-- Cambiar el código o la naturaleza de una cuenta existente, y mover una cuenta de padre.
-- Documentación OpenAPI/Swagger, autenticación y auditoría.
 
 ## Qué haría con más tiempo
 
