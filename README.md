@@ -21,6 +21,7 @@ Los datos viven en memoria: se pierden al reiniciar el proceso.
 |--------|------|--------|-----------|
 | `POST` | `/accounts` | `{ "code": "1105", "name": "Caja", "nature"?: "DEBITO" \| "CREDITO" }` | `201` con la cuenta creada |
 | `GET` | `/accounts/tree` | — | `200` con el catálogo anidado |
+| `GET` | `/accounts/:code/path` | — | `200` con el camino desde la cuenta hasta su clase (ej. `110505 → 1105 → 11 → 1`) |
 | `PATCH` | `/accounts/:code` | `{ "name": "Caja general" }` | `200` con la cuenta renombrada |
 | `DELETE` | `/accounts/:code` | — | `204` sin cuerpo |
 
@@ -54,7 +55,7 @@ Todos los errores de dominio responden `{ statusCode, error, message }`, donde `
 | Tipo | HTTP | Cuándo |
 |------|------|--------|
 | `VALIDATION` | 400 | Código no numérico o de longitud distinta de 1, 2, 4 o 6; nombre vacío; clase sin naturaleza o con una naturaleza desconocida; cuenta que no es clase con naturaleza |
-| `NOT_FOUND` | 404 | Renombrar o eliminar una cuenta que no existe |
+| `NOT_FOUND` | 404 | Renombrar, eliminar o pedir el camino de una cuenta que no existe |
 | `CONFLICT` | 409 | Código duplicado; eliminar una cuenta que tiene hijas |
 | `BUSINESS_RULE` | 422 | Crear una cuenta cuyo padre no existe |
 
@@ -85,6 +86,8 @@ src/catalog/
 
 **Herencia del padre directo.** Cada cuenta toma la naturaleza de su padre inmediato, no de la clase. Como el padre ya la heredó al crearse, el resultado es el mismo, pero solo hace falta una consulta (el padre que de todas formas se valida) en vez de recorrer la jerarquía. La naturaleza queda guardada en cada cuenta, y por eso el árbol se lee sin recalcular nada. Si se envía naturaleza a una cuenta que no es clase, se rechaza en vez de ignorarla en silencio, para que el cliente no crea que la aplicó.
 
+**Por qué implementé el camino hasta la clase y no otro opcional.** Era el más barato: cada cuenta ya guarda su `parentCode`, así que el caso de uso solo sube de padre en padre con el repositorio que ya existe, sin tocar el dominio ni el modelo de datos. Con eso me quedó tiempo para revisar y probar el núcleo (creación, jerarquía, herencia y eliminación), que es lo que más pesa. Los otros opcionales piden más: la importación masiva necesita decidir qué pasa con los fallos parciales, el listado necesita filtros y paginación, y la inactivación cambia el modelo (un estado nuevo y una regla sobre hijas activas).
+
 **Otras decisiones:**
 
 - El padre inexistente es una regla de negocio (422): la petición es válida, pero el catálogo no la permite.
@@ -98,7 +101,6 @@ Opcionales del enunciado que no implementé:
 - **Importación masiva.** Recibiría una lista de cuentas y respondería cuáles entraron y cuáles fallaron, con su motivo. Las procesaría en orden de código, para que cada padre se cree antes que sus hijas aunque vengan desordenadas. Permitiría un catálogo parcial y reportaría cada fallo, porque una fila mala no debería frenar cientos de filas buenas. Si el negocio exige consistencia total, sería todo o nada dentro de una transacción.
 - **Listado plano con filtros** por nivel, naturaleza y texto en el código o el nombre, con paginación.
 - **Inactivar en lugar de borrar.** No se podría inactivar una cuenta que tenga hijas activas.
-- **Camino de una cuenta hasta su clase.**
 
 Pendientes técnicos:
 

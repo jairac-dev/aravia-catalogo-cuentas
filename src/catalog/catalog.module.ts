@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { APP_FILTER } from '@nestjs/core';
 import { CreateAccount } from './application/create-account.js';
 import { DeleteAccount } from './application/delete-account.js';
+import { GetAccountPath } from './application/get-account-path.js';
 import { GetCatalogTree } from './application/get-catalog-tree.js';
 import { RenameAccount } from './application/rename-account.js';
 import { ACCOUNT_REPOSITORY } from './domain/account-repository.js';
@@ -36,6 +37,12 @@ import { InMemoryAccountRepository } from './infrastructure/persistence/in-memor
       provide: DeleteAccount,
       useFactory: (repository: AccountRepository) =>
         new DeleteAccount(repository),
+      inject: [ACCOUNT_REPOSITORY],
+    },
+    {
+      provide: GetAccountPath,
+      useFactory: (repository: AccountRepository) =>
+        new GetAccountPath(repository),
       inject: [ACCOUNT_REPOSITORY],
     },
     { provide: APP_FILTER, useClass: DomainExceptionFilter },

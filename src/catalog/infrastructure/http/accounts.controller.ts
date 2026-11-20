@@ -11,6 +11,7 @@ import {
 } from '@nestjs/common';
 import { CreateAccount } from '../../application/create-account.js';
 import { DeleteAccount } from '../../application/delete-account.js';
+import { GetAccountPath } from '../../application/get-account-path.js';
 import { GetCatalogTree } from '../../application/get-catalog-tree.js';
 import type { AccountTreeNode } from '../../application/get-catalog-tree.js';
 import { RenameAccount } from '../../application/rename-account.js';
@@ -52,17 +53,20 @@ export class AccountsController {
   private readonly getCatalogTree: GetCatalogTree;
   private readonly renameAccount: RenameAccount;
   private readonly deleteAccount: DeleteAccount;
+  private readonly getAccountPath: GetAccountPath;
 
   constructor(
     createAccount: CreateAccount,
     getCatalogTree: GetCatalogTree,
     renameAccount: RenameAccount,
     deleteAccount: DeleteAccount,
+    getAccountPath: GetAccountPath,
   ) {
     this.createAccount = createAccount;
     this.getCatalogTree = getCatalogTree;
     this.renameAccount = renameAccount;
     this.deleteAccount = deleteAccount;
+    this.getAccountPath = getAccountPath;
   }
 
   @Post()
@@ -78,6 +82,12 @@ export class AccountsController {
   @Get('tree')
   tree(): Promise<AccountTreeNode[]> {
     return this.getCatalogTree.execute();
+  }
+
+  @Get(':code/path')
+  async path(@Param('code') code: string): Promise<AccountResponse[]> {
+    const path = await this.getAccountPath.execute(code);
+    return path.map(toResponse);
   }
 
   @Patch(':code')
